@@ -74,6 +74,7 @@ const Formpropietariomascotas = ({
           accept: "application/json",
           "content-type": "application/json",
         },
+        //enviando de la misma forma con el ojeto json
         body: JSON.stringify({
           ci: ci,
           nombres: nombres,

@@ -11,6 +11,8 @@ export const useuserContext = () => {
 };
 
 export const Usercontextprovider = ({ children }) => {
+  //la forma en la que se trabaja con los cookies es un moiddleware
+
   const token = getCookie("token");
   const [user, setUser] = useState({ isLogged: !!token });
   const navegate = useNavigate();
@@ -22,6 +24,7 @@ export const Usercontextprovider = ({ children }) => {
   }
 
   const getUser = () => {
+    //
     const user = JSON.parse(localStorage.getItem("user"));
     if (user) {
       const obj = {

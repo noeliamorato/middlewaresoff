@@ -30,7 +30,9 @@ const Propietariomascotas = () => {
         accept: "application/json",
       },
     });
-    const respuesta = await response?.json();
+    //middleware .json (ordena los datos y lo pone en solo formato)
+    //normaliza los datos que trae la petición o api fetch 
+    const respuesta = await response?.json(); 
     setpromascotas(respuesta);
   }
 

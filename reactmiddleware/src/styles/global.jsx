@@ -77,7 +77,7 @@ export const Padre = styled.article`
   }
 
   & table {
-    margin: 1em auto;
+    margin: .5em auto;
     width: 100%; /* Cambio: Cambiar el ancho a 100% */
     background-color: rgb(255, 255, 255);
     height: auto;
@@ -85,9 +85,9 @@ export const Padre = styled.article`
     position: relative;
 
     & th {
-      font-size: 1em;
+      font-size: .9em;
       font-weight: 100;
-      padding: 1.2em 0;
+      padding: 1em 0;
     }
 
     & tr {
@@ -104,6 +104,7 @@ export const Padre = styled.article`
         box-shadow: 0 0px 8px 4px #0005;
         & > td {
           color: #fff;
+          text-overflow:clip;
         }
         & button {
           color: #fff;

@@ -1,0 +1,91 @@
+#include "UbidotsESPMQTT.h"
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+
+/****************************************
+ * Definir Constantes
+ ****************************************/
+#define TOKEN "BBFF-oxRgzcuHjCeYZPC6nhHXar01V6YErq" // Tu TOKEN de Ubidots
+#define NOMBRE_WIFI "Rocha Morato" // Tu SSID de red WiFi
+#define CONTRASEÑA_WIFI "tyJrPxpyrn" // Contraseña de tu red WiFi
+#define ETIQUETA_DISPOSITIVO "practica_1" // Etiqueta de tu dispositivo en Ubidots
+#define ETIQUETA_TEMPERATURA "temperatura" // Etiqueta de tu variable de temperatura en Ubidots
+#define ETIQUETA_HUMEDAD "humedad" // Etiqueta de tu variable de humedad en Ubidots
+
+// Configuración del sensor DHT
+#define DHTPIN 2 // Pin al que está conectado el sensor DHT
+#define DHTTYPE DHT11 // Tipo de sensor DHT (DHT22 o DHT11)
+DHT dht(DHTPIN, DHTTYPE);
+
+Ubidots client(TOKEN);
+
+/****************************************
+ * Funciones Auxiliares
+ ****************************************/
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Mensaje recibido [");
+  Serial.print(topic);
+  Serial.print("] ");
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
+}
+
+/****************************************
+ * Funciones Principales
+ ****************************************/
+
+void setup() {
+  // Configura el cliente Ubidots
+  client.ubidotsSetBroker("industrial.api.ubidots.com"); // Configura el broker para la cuenta Industrial de Ubidots
+  client.setDebug(false); // Cambia a true para activar mensajes de depuración
+  Serial.begin(115200);
+  
+  // Inicializa el sensor DHT
+  dht.begin();
+  
+  // Conéctate a la red WiFi
+  client.wifiConnection(NOMBRE_WIFI, CONTRASEÑA_WIFI);
+  
+  // Inicializa el cliente Ubidots
+  client.begin(callback);
+  
+  // Suscríbete a las variables de temperatura y humedad
+  client.ubidotsSubscribe(ETIQUETA_DISPOSITIVO, ETIQUETA_TEMPERATURA); // Suscríbete a la variable de temperatura
+  client.ubidotsSubscribe(ETIQUETA_DISPOSITIVO, ETIQUETA_HUMEDAD); // Suscríbete a la variable de humedad
+}
+
+void loop() {
+  // Reconnect al servidor si no está conectado
+  if (!client.connected()) {
+    client.reconnect();
+    // Vuelve a suscribirte a las variables de temperatura y humedad después de la reconexión
+    client.ubidotsSubscribe(ETIQUETA_DISPOSITIVO, ETIQUETA_TEMPERATURA);
+    client.ubidotsSubscribe(ETIQUETA_DISPOSITIVO, ETIQUETA_HUMEDAD);
+  }
+
+  // Leer temperatura y humedad
+  float temperatura = dht.readTemperature();
+  float humedad = dht.readHumidity();
+
+  if (!isnan(temperatura) && !isnan(humedad)) {
+    Serial.print("Temperatura: ");
+    Serial.print(temperatura);
+    Serial.println(" °C");
+
+    Serial.print("Humedad: ");
+    Serial.print(humedad);
+    Serial.println(" %");
+
+    // Enviar los valores a Ubidots
+    client.add(ETIQUETA_TEMPERATURA, temperatura);
+    client.add(ETIQUETA_HUMEDAD, humedad);
+    client.ubidotsPublish(ETIQUETA_DISPOSITIVO);
+
+    // Mantén la conexión al servidor MQTT
+    client.loop();
+    delay(5000); // Espera 5 segundos antes de enviar los datos nuevamente
+  }
+}
